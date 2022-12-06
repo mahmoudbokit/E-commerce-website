@@ -1,0 +1,131 @@
+
+{% extends "onlineShop/infos.html " %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <form class="card card-sm">
+                <div class="card-body row no-gutters align-items-center">
+                    <div class="col">
+                        <input type="search" placeholder="Enter the name of the product you are looking for" name="item-name"
+                               class="form-control form-control-borderless">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-success">
+                            Research
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for product in product_object %}
+        <div class="col-md-3 border border-primary">
+            <div class="card border border-warning">
+                <img src="{{ product.image }}" alt="" class="card-ing-top border border-danger">
+                <div class="card-body">
+                    <div id="aa{{ product.id }}" class="card-title">{{ product.title }}</div>
+                    <div id="price{{ product.id }}" style="color:pink" class="card-text">{{ product.price }}$</div>
+                    <a href="{{ product.id }}" class="btn btn-primary">SeeMore</a>
+<!--                    <button id="Remove{{ product.id }}" class="btn nbr btn-danger">Remove</button>-->
+                    <button id="{{ product.id }}" class="btn nbr btn-success">AddToCart</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-3 offset-md-4">
+            <ul class="pagination">
+                {% if product_object.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ product_object.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                     <li class="item-page active">
+                         <a class="page-link" href="?page={{ product_object.number }}">{{ product_object.number }}</a>
+                     </li>
+
+                {% if product_object.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ product_object.next_page_number }}">Next</a>
+                    </li>
+                {% endif %}
+
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript">
+        console.log('Juste pour tester')
+        if(localStorage.getItem('ShoppingCart') == null){
+            var ShoppingCart = {};
+        }else{
+            ShoppingCart = JSON.parse(localStorage.getItem('ShoppingCart'));
+        }
+        $(document).on('click', '.nbr', function(){
+            console.log('AddToCart');
+            var item_id = this.id.toString();
+            console.log(item_id);
+            if(ShoppingCart[item_id] != undefined){
+                quantity = ShoppingCart[item_id][0] + 1;
+                ShoppingCart[item_id][0] = quantity;
+                ShoppingCart[item_id][2] += parseFloat(document.getElementById("price"+item_id).innerHTML);
+            }else{
+                quantity = 1;
+                price = parseFloat(document.getElementById("price"+item_id).innerHTML);
+                name = document.getElementById("aa"+item_id).innerHTML;
+                ShoppingCart[item_id] = [quantity, name, price];
+            }
+            console.log(ShoppingCart);
+            localStorage.setItem('ShoppingCart', JSON.stringify(ShoppingCart));
+            document.getElementById('ShoppingCart').innerHTML ="ShoppingCart("+ Object.keys(ShoppingCart).length +")";
+        });
+
+
+<!--        $(document).on('click', '.nbr', function(){-->
+<!--            console.log('Remove');-->
+<!--            var item_id = this.id.toString();-->
+<!--            console.log(item_id);-->
+<!--            if(ShoppingCart[item_id] != undefined){-->
+<!--                quantity = ShoppingCart[item_id][0] - 1;-->
+<!--                ShoppingCart[item_id][0] = quantity;-->
+<!--                ShoppingCart[item_id][2] -= parseFloat(document.getElementById("price"+item_id).innerHTML);-->
+<!--            }else{-->
+<!--                quantity = 1;-->
+<!--                price = parseFloat(document.getElementById("price"+item_id).innerHTML);-->
+<!--                name = document.getElementById("aa"+item_id).innerHTML;-->
+<!--                ShoppingCart[item_id] = [quantity, name, price];-->
+<!--            }-->
+<!--            console.log(ShoppingCart);-->
+<!--            localStorage.setItem('ShoppingCart', JSON.stringify(ShoppingCart));-->
+<!--            document.getElementById('ShoppingCart').innerHTML ="ShoppingCart("+ Object.keys(ShoppingCart).length +")";-->
+<!--        });-->
+
+        ViewContentsShoppingCart(ShoppingCart);
+        function ViewContentsShoppingCart(ShoppingCart){
+            var cartString = " ";
+            cartString += "<h5>Here are the contents of your shopping cart</h5>";
+            var index = 1;
+            for(var x in ShoppingCart){
+                if(document.getElementById("aa"+x) != null){
+                    cartString += index;
+                    cartString += document.getElementById("aa"+x).innerHTML + " Amount: " + ShoppingCart[x][0] +"</br>";
+                    index += 1;
+                }else{
+                    cartString = " ";
+                }
+            }
+            cartString += "<a href='/checkout' class='btn btn-success'>Checkout</a>";
+            $('[data-toggle="popover"]').popover();
+            document.getElementById('ShoppingCart').setAttribute('data-content', cartString);
+        }
+
+    </script>
+{% endblock %}
